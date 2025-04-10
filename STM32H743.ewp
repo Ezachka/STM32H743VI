@@ -362,7 +362,8 @@
                     <state>$PROJ_DIR$\STM32H743\Config</state>
                     <state>$PROJ_DIR$\STM32H743\Drivers</state>
                     <state>$PROJ_DIR$\STM32H743\Services</state>
-                    <state>$PROJ_DIR$\STM32H743\Services\Display</state>
+                    <state>$PROJ_DIR$\STM32H743\Services\display</state>
+                    <state>$PROJ_DIR$\STM32H743\Services\\display_xxxx</state>
                     <state>$PROJ_DIR$\STM32H743\Utils</state>
                 </option>
                 <option>
@@ -2363,6 +2364,15 @@
     </group>
     <group>
         <name>Services</name>
+        <group>
+            <name>display_xxxx</name>
+            <file>
+                <name>$PROJ_DIR$\STM32H743\Services\display_xxxx\display_xxxx.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\STM32H743\Services\display_xxxx\display_xxxx.h</name>
+            </file>
+        </group>
         <group>
             <name>display</name>
             <file>
