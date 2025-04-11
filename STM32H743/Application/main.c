@@ -26,7 +26,8 @@
 
 init_status_t init_status;
 
-
+char line_1[20]="    Hello";
+char line_2[20]="    World!";
 int main()
 { 
     init_status.rcc_init_status=rcc_clock_init(); 
@@ -42,8 +43,6 @@ int main()
     
     //  SoftUartInit(0, USART_SW_TX_PORT, 12, 0, 0); //
     lcd_xxxx_init(I2C1,DISPLAY_XXXX_I2C_ADDR,16, 2,true);
-    lcd_xxxx_write_on_line(I2C1,"    Hello",1);
-    lcd_xxxx_write_on_line(I2C1,"    World!",2);
     //  SH1106_Init();
     
 	while(1)
@@ -64,6 +63,7 @@ int main()
         if( systick_div_100hz )
         {  
             systick_div_100hz = false;  
+                       lcd_xxxx_config_update(I2C1);
         }
         
         if( systick_div_10hz )
@@ -79,10 +79,13 @@ int main()
         if( systick_div_1hz )
         {  
             systick_div_1hz = false; 
-             lcd_xxxx_config_update(I2C1);
+            
+            lcd_xxxx_change_line(line_1,1);
+            lcd_xxxx_change_line(line_2,2);
+  
 
-    lcd_xxxx_write_on_line(I2C1,"    Hello",1);
-    lcd_xxxx_write_on_line(I2C1,"    World!",2);
+//    lcd_xxxx_write_on_line(I2C1,"    Hello",1);
+//    lcd_xxxx_write_on_line(I2C1,"    World!",2);
 //            lcd_xxxx_cursor(I2C1,5, 1);
         }
     }//. while(1)

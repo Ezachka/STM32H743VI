@@ -1,18 +1,18 @@
 #include "display_xxxx.h"
 
 /**
-  ******************************************************************************
-  * File Name          : display_xxx.c
-  * Description        : This lib made for any HD44780 LCDs with i2c adapter
-  *                      i2c comunnication only  
-  ******************************************************************************
-  * @attention
-  * -1602 tested, correct working
-  * 
-  * 
-  *
-  ******************************************************************************
-  */
+******************************************************************************
+* File Name          : display_xxx.c
+* Description        : This lib made for any HD44780 LCDs with i2c adapter
+*                      i2c comunnication only  
+******************************************************************************
+* @attention
+* -1602 tested, correct working
+* 
+* 
+*
+******************************************************************************
+*/
 
 /****************************************************************************/
 /****************************** DEFINITIONS *********************************/
@@ -45,7 +45,7 @@ ErrorStatus lcd_i2c_data_send(I2C_TypeDef* I2C_x,uint8_t data, uint8_t flags){
     uint8_t lsb =(data << 4) & 0xF0;          
 	uint8_t arr[4];
     uint8_t back_light;
-    if(display.settings.black_light_on&& flags==DISPLAY_XXXX_SEND_DATA){
+    if(display.settings.black_light_on){//&& flags==DISPLAY_XXXX_SEND_DATA){
         back_light=DISPLAY_XXXX_BACKLIGHT;
     }
     else{
@@ -89,34 +89,119 @@ ErrorStatus lcd_xxxx_config_update(I2C_TypeDef* I2C_x){
     
     ///opration
     if(display.operation.clear_display){
-    status|=lcd_xxxx_clear(I2C_x);
-    display.operation.clear_display=false;
+        status|=lcd_xxxx_clear(I2C_x);
+        display.operation.clear_display=false;
     }
     else if(display.operation.return_home){
-    status|=lcd_xxxx_home(I2C_x);
-    display.operation.return_home=false;
+        status|=lcd_xxxx_home(I2C_x);
+        display.operation.return_home=false;
     }
-    
-    ///regs
+    else if(display.operation.set_cursor){
+        lcd_xxxx_cursor(I2C_x,display.data.cursor_column,display.data.cursor_line);
+        display.operation.set_cursor=false;
+    }
+    else if(display.operation.update_data){
+        status|=lcd_xxxx_clear(I2C_x);
+        status|=lcd_xxxx_write_on_line(I2C_x,display.data.line_one,1);
+        status|=lcd_xxxx_write_on_line(I2C_x,display.data.line_two,2);
+        status|=lcd_xxxx_write_on_line(I2C_x,display.data.line_three,3);
+        status|=lcd_xxxx_write_on_line(I2C_x,display.data.line_four,4);
+        display.operation.update_data=false;
+    }
+
+    ///settings change
+    //entry mode
+    if(display.settings.entry_mode.increment_for_cursor){
+        display.regs.entry_mode|=DISPLAY_XXXX_ENTRY_SHIFT_INCREMENT;
+    }
+    else{
+        display.regs.entry_mode&=~DISPLAY_XXXX_ENTRY_SHIFT_INCREMENT;    //dicrement---
+    }
+        if(display.settings.entry_mode.shift_left){
+        display.regs.entry_mode|=DISPLAY_XXXX_ENTRY_LEFT;
+    }
+    else{
+        display.regs.entry_mode&=~DISPLAY_XXXX_ENTRY_LEFT;           //right
+    }
+    //functions
+    if(display.settings.function.interface_8_or_4){
+        display.regs.functions|=DISPLAY_XXXX_8_BIT_MODE;
+    }
+    else{
+        display.regs.functions&=~DISPLAY_XXXX_8_BIT_MODE;    //4bit
+    }
+    if(display.settings.function.line_two_or_one){
+        display.regs.functions|=DISPLAY_XXXX_2_LINE;
+    }
+    else{
+        display.regs.functions&=~DISPLAY_XXXX_2_LINE;    //1 line
+    }    
+    if(display.settings.function.dot_size_h){
+        display.regs.functions|=DISPLAY_XXXX_5x10_DOTS;
+    }
+    else{
+        display.regs.functions&=~DISPLAY_XXXX_5x10_DOTS;    //5x8
+    }    
+    //display control
+    if(display.settings.display_control.display_on){
+        display.regs.display_control|=DISPLAY_XXXX_DISPLAY_ON;
+    }
+    else{
+        display.regs.display_control&=~DISPLAY_XXXX_DISPLAY_ON;   //off 
+    }
+    if(display.settings.display_control.cursor_on){
+        display.regs.display_control|=DISPLAY_XXXX_CURSOR_ON;
+    }
+    else{
+        display.regs.display_control&=~DISPLAY_XXXX_CURSOR_ON;    //off cursor
+    }
+    if(display.settings.display_control.cursor_blink_on){
+        display.regs.display_control|=DISPLAY_XXXX_BLINK_ON;
+    }
+    else{
+        display.regs.display_control&=~DISPLAY_XXXX_BLINK_ON;    //off blink
+    }
+        //shift
+    if(display.settings.shift.s_c){
+        display.regs.cursor_shift|=DISPLAY_XXXX_DISPLAY_MOVE;
+    }
+    else{
+        display.regs.cursor_shift&=~DISPLAY_XXXX_DISPLAY_MOVE;       //
+    }
+    if(display.settings.shift.r_l){
+        display.regs.cursor_shift|=DISPLAY_XXXX_MOVE_RIGHT;
+    }
+    else{
+        display.regs.cursor_shift&=~DISPLAY_XXXX_MOVE_RIGHT;           //
+    }
+    ///regs update
     if(old_functions!=display.regs.functions){
-    status|=lcd_i2c_data_send(I2C_x,display.regs.functions,DISPLAY_XXXX_SEND_SETTINGS);   
-    old_functions=display.regs.functions;
-    status|=lcd_xxxx_clear(I2C_x);  
+        status|=lcd_i2c_data_send(I2C_x,display.regs.functions,DISPLAY_XXXX_SEND_SETTINGS);   
+        delay_ms(5);
+        old_functions=display.regs.functions;
+        status|=lcd_xxxx_clear(I2C_x);  
+        display.operation.update_data=true;
     }
     else if(old_display_control!=display.regs.display_control){
-    status|=lcd_i2c_data_send(I2C_x,display.regs.display_control,DISPLAY_XXXX_SEND_SETTINGS);
-    old_display_control=display.regs.display_control;
-    status|=lcd_xxxx_clear(I2C_x);  
+        status|=lcd_i2c_data_send(I2C_x,display.regs.display_control,DISPLAY_XXXX_SEND_SETTINGS);
+        delay_ms(5);
+        old_display_control=display.regs.display_control;
+        status|=lcd_xxxx_clear(I2C_x);  
+        display.operation.update_data=true;
     } 
     else if(old_entry_mode!=display.regs.entry_mode){
-    status|=lcd_i2c_data_send(I2C_x,display.regs.entry_mode,DISPLAY_XXXX_SEND_SETTINGS);
-    old_entry_mode=display.regs.entry_mode;
-    status|=lcd_xxxx_clear(I2C_x);  
+        status|=lcd_i2c_data_send(I2C_x,display.regs.entry_mode,DISPLAY_XXXX_SEND_SETTINGS);
+        delay_ms(5);
+        old_entry_mode=display.regs.entry_mode;
+        status|=lcd_xxxx_clear(I2C_x);  
+        display.operation.update_data=true;
     } 
     else if(old_cursor_shift!=display.regs.cursor_shift){
-    status|=lcd_i2c_data_send(I2C_x,display.regs.cursor_shift,DISPLAY_XXXX_SEND_SETTINGS);
-    old_cursor_shift=display.regs.cursor_shift;
-    status|=lcd_xxxx_clear(I2C_x);  
+        status|=lcd_i2c_data_send(I2C_x,display.regs.cursor_shift,DISPLAY_XXXX_SEND_SETTINGS); 
+        delay_ms(5);
+        old_cursor_shift=display.regs.cursor_shift;
+        status|=lcd_xxxx_clear(I2C_x);  
+        display.operation.update_data=true;
     } 
     
     return status;
@@ -134,25 +219,38 @@ ErrorStatus lcd_xxxx_config_update(I2C_TypeDef* I2C_x){
 ErrorStatus lcd_xxxx_init(I2C_TypeDef* I2C_x,uint8_t adr,uint8_t columns, uint8_t lines,bool back_light){
     ErrorStatus status = SUCCESS;   
     
-    display.settings.black_light_on =   back_light;
-    display.regs.functions              =   DISPLAY_XXXX_CMD_FUNCTION_SET|DISPLAY_XXXX_2_LINE|DISPLAY_XXXX_5x8_DOTS|DISPLAY_XXXX_8_BIT_MODE;
-    display.regs.entry_mode             =   DISPLAY_XXXX_CMD_ENTRY_MODE_SET|DISPLAY_XXXX_ENTRY_SHIFT_DECREMENT|DISPLAY_XXXX_ENTRY_LEFT;
-    display.regs.display_control        =   DISPLAY_XXXX_CMD_DISPLAY_CONTROL|DISPLAY_XXXX_DISPLAY_ON|DISPLAY_XXXX_CURSOR_OFF|DISPLAY_XXXX_BLINK_OFF;
-    display.regs.cursor_shift           =   DISPLAY_XXXX_CMD_CURSOR_SHIFT;
-
     lcd_xxxx_identification(&display,adr,columns,lines);
-
     
-    status|=lcd_i2c_data_send(I2C_x,display.regs.functions,DISPLAY_XXXX_SEND_SETTINGS);  //8bit interfece
+    strcpy(display.data.line_one,"    Hello");
+    strcpy(display.data.line_two,"    World!");
+    display.settings.black_light_on =   back_light;
+    
+    display.regs.functions              |=   DISPLAY_XXXX_CMD_FUNCTION_SET;
+    display.regs.entry_mode             |=   DISPLAY_XXXX_CMD_ENTRY_MODE_SET;
+    display.regs.display_control        |=   DISPLAY_XXXX_CMD_DISPLAY_CONTROL;
+    display.regs.cursor_shift           |=   DISPLAY_XXXX_CMD_CURSOR_SHIFT;
+    
+    display.settings.function.line_two_or_one=true;
+    display.settings.function.interface_8_or_4=true;
+    display.settings.function.dot_size_h=false;
+    
+    display.settings.display_control.display_on=true;
+    display.settings.display_control.cursor_on=false;
+    display.settings.display_control.cursor_blink_on=false;
+    
+    display.settings.entry_mode.increment_for_cursor=false;
+    display.settings.entry_mode.shift_left=true;
+    
+    display.settings.shift.s_c=false;
+    display.settings.shift.r_l=false;
+    
+    status |= lcd_xxxx_config_update(I2C_x);  
+    
     delay_ms(5);
-    status|=lcd_i2c_data_send(I2C_x,display.regs.entry_mode,DISPLAY_XXXX_SEND_SETTINGS);  //mode   
+    status |= lcd_xxxx_home(I2C_x);  //set cursor at begin of stro
     delay_ms(5);
-    status|=lcd_i2c_data_send(I2C_x,display.regs.display_control,DISPLAY_XXXX_SEND_SETTINGS);  //normal work, witcout cursor and blink
-    delay_ms(5);
-    status|=lcd_xxxx_home(I2C_x);  //set cursor at begin of stro
-    delay_ms(5);
-    status|=lcd_xxxx_clear(I2C_x);                                           //clear display
-    lcd_xxxx_config_update(I2C_x);
+    status |= lcd_xxxx_clear(I2C_x); //clear display
+    display.operation.update_data=true;
     return status;
 }
 
@@ -173,6 +271,9 @@ ErrorStatus lcd_xxxx_write_on_line(I2C_TypeDef* I2C_x,char *str, uint8_t line){
         len = display.columns;
         status = ERROR;
     }
+    if(line>display.lines){
+        return ERROR;
+    }
     status|=lcd_xxxx_go_to_line(I2C_x,line);
     for (uint8_t i = 0; i < len; i++){
         status |= lcd_i2c_data_send(I2C_x, (uint8_t)str[i], DISPLAY_XXXX_SEND_DATA);
@@ -181,6 +282,57 @@ ErrorStatus lcd_xxxx_write_on_line(I2C_TypeDef* I2C_x,char *str, uint8_t line){
 }
 
 
+
+/**
+* @brief lcd_xxxx_change_line
+*  
+*  
+* 
+* @param[in] 
+* @return    
+*/
+
+ErrorStatus lcd_xxxx_change_line(char *str, uint8_t line){
+    ErrorStatus status = SUCCESS;
+    switch (line) {
+        case 1:
+        if (strncmp(display.data.line_one, str, display.columns) == 0) {
+            return ERROR; 
+        }
+        memset(display.data.line_one, 0x00, sizeof(display.data.line_one));
+        strncpy(display.data.line_one, str, display.columns);
+        break;
+        
+        case 2:
+        if (strncmp(display.data.line_two, str, display.columns) == 0) {
+            return ERROR;
+        }
+        memset(display.data.line_two, 0x00, sizeof(display.data.line_two));
+        strncpy(display.data.line_two, str, display.columns);
+        break;
+        
+        case 3:
+        if (strncmp(display.data.line_three, str, display.columns) == 0) {
+            return ERROR;
+        }
+        memset(display.data.line_three, 0x00, sizeof(display.data.line_three));
+        strncpy(display.data.line_three, str, display.columns);
+        break;
+        
+        case 4:
+        if (strncmp(display.data.line_four, str, display.columns) == 0) {
+            return ERROR;
+        }
+        memset(display.data.line_four, 0x00, sizeof(display.data.line_four));
+        strncpy(display.data.line_four, str, display.columns);
+        break;
+        
+        default:
+        return ERROR;
+    }
+    display.operation.update_data=true;
+    return status;
+}
 
 /**
 * @brief lcd_xxxx_identification
@@ -339,7 +491,7 @@ ErrorStatus lcd_xxxx_home(I2C_TypeDef* I2C_x){
 */
 
 ErrorStatus lcd_xxxx_cursor(I2C_TypeDef* I2C_x,uint8_t column, uint8_t line){
-    ErrorStatus status = SUCCESS;   
+    ErrorStatus status = SUCCESS;
     uint8_t row_offsets[] = { 0x00, 0x40, 0x14, 0x54 };
 	if ( line > (display.lines-1) ) {
 		line = display.lines-1;    
@@ -347,162 +499,4 @@ ErrorStatus lcd_xxxx_cursor(I2C_TypeDef* I2C_x,uint8_t column, uint8_t line){
     status|=lcd_i2c_data_send(I2C_x,DISPLAY_XXXX_CMD_SET_DDRAMA_DDR | (column + row_offsets[line]),DISPLAY_XXXX_SEND_SETTINGS);  //set cursor
     return status;
 }
-/**
-* @brief lcd_xxxx_off
-*  
-*  
-* 
-* @param[in] I2C_x  I2C peripheral
-* @return    ErrorStatus
-*/
 
-ErrorStatus lcd_xxxx_off(I2C_TypeDef* I2C_x){
-    ErrorStatus status = SUCCESS;   
-    status|=lcd_i2c_data_send(I2C_x,DISPLAY_XXXX_CMD_DISPLAY_CONTROL|DISPLAY_XXXX_DISPLAY_OFF,DISPLAY_XXXX_SEND_SETTINGS); 
-    return status;
-}
-/**
-* @brief lcd_xxxx_on
-*  
-*  
-* 
-* @param[in] I2C_x  I2C peripheral
-* @return    ErrorStatus
-*/
-
-ErrorStatus lcd_xxxx_on(I2C_TypeDef* I2C_x){
-    ErrorStatus status = SUCCESS;   
-    status|=lcd_i2c_data_send(I2C_x,DISPLAY_XXXX_CMD_DISPLAY_CONTROL|DISPLAY_XXXX_DISPLAY_ON,DISPLAY_XXXX_SEND_SETTINGS); 
-    return status;
-}
-/**
-* @brief lcd_xxxx_cursor_off
-*  
-*  
-* 
-* @param[in] I2C_x  I2C peripheral
-* @return    ErrorStatus
-*/
-
-ErrorStatus lcd_xxxx_cursor_off(I2C_TypeDef* I2C_x){
-    ErrorStatus status = SUCCESS;   
-    status|=lcd_i2c_data_send(I2C_x,DISPLAY_XXXX_CMD_DISPLAY_CONTROL|DISPLAY_XXXX_CURSOR_OFF,DISPLAY_XXXX_SEND_SETTINGS); 
-    return status;
-}
-/**
-* @brief lcd_xxxx_cursor_on
-*  
-*  
-* 
-* @param[in] I2C_x  I2C peripheral
-* @return    ErrorStatus
-*/
-
-ErrorStatus lcd_xxxx_cursor_on(I2C_TypeDef* I2C_x){
-    ErrorStatus status = SUCCESS;   
-    status|=lcd_i2c_data_send(I2C_x,DISPLAY_XXXX_CMD_DISPLAY_CONTROL|DISPLAY_XXXX_CURSOR_ON,DISPLAY_XXXX_SEND_SETTINGS);  
-    return status;
-}
-/**
-* @brief lcd_xxxx_cursor_blink_off
-*  
-*  
-* 
-* @param[in] I2C_x  I2C peripheral
-* @return    ErrorStatus
-*/
-
-ErrorStatus lcd_xxxx_cursor_blink_off(I2C_TypeDef* I2C_x){
-    ErrorStatus status = SUCCESS;   
-    status|=lcd_i2c_data_send(I2C_x,DISPLAY_XXXX_CMD_DISPLAY_CONTROL|DISPLAY_XXXX_BLINK_OFF,DISPLAY_XXXX_SEND_SETTINGS);  
-    return status;
-}
-/**
-* @brief lcd_xxxx_cursor_blink_on
-*  
-*  
-* 
-* @param[in] I2C_x  I2C peripheral
-* @return    ErrorStatus
-*/
-
-ErrorStatus lcd_xxxx_cursor_blink_on(I2C_TypeDef* I2C_x){
-    ErrorStatus status = SUCCESS;   
-    status|=lcd_i2c_data_send(I2C_x,DISPLAY_XXXX_CMD_DISPLAY_CONTROL|DISPLAY_XXXX_BLINK_ON,DISPLAY_XXXX_SEND_SETTINGS);  
-    return status;
-}
-/**
-* @brief lcd_xxxx_scroll_left
-* 
-* 
-* @param[in] I2C_x  I2C peripheral
-* @return    ErrorStatus
-*/
-ErrorStatus lcd_xxxx_scroll_left(I2C_TypeDef* I2C_x){
-    return lcd_i2c_data_send(I2C_x, 
-        DISPLAY_XXXX_CMD_CURSOR_SHIFT | DISPLAY_XXXX_DISPLAY_MOVE | DISPLAY_XXXX_MOVE_LEFT, 
-        DISPLAY_XXXX_SEND_SETTINGS);
-}
-
-/**
-* @brief lcd_xxxx_scroll_right
-* 
-* 
-* @param[in] I2C_x  I2C peripheral
-* @return    ErrorStatus
-*/
-ErrorStatus lcd_xxxx_scroll_right(I2C_TypeDef* I2C_x){
-    return lcd_i2c_data_send(I2C_x, 
-        DISPLAY_XXXX_CMD_CURSOR_SHIFT | DISPLAY_XXXX_DISPLAY_MOVE | DISPLAY_XXXX_MOVE_RIGHT, 
-        DISPLAY_XXXX_SEND_SETTINGS);
-}
-/**
-* @brief lcd_xxxx_text_left_to_right
-* Sets text direction: Left to Right
-* 
-* @param[in] I2C_x  I2C peripheral
-* @return    ErrorStatus
-*/
-ErrorStatus lcd_xxxx_text_left_to_right(I2C_TypeDef* I2C_x){
-    return lcd_i2c_data_send(I2C_x, 
-        DISPLAY_XXXX_CMD_ENTRY_MODE_SET | DISPLAY_XXXX_ENTRY_LEFT | DISPLAY_XXXX_ENTRY_SHIFT_DECREMENT, 
-        DISPLAY_XXXX_SEND_SETTINGS);
-}
-
-/**
-* @brief lcd_xxxx_text_right_to_left
-* Sets text direction: Right to Left
-* 
-* @param[in] I2C_x  I2C peripheral
-* @return    ErrorStatus
-*/
-ErrorStatus lcd_xxxx_text_right_to_left(I2C_TypeDef* I2C_x){
-    return lcd_i2c_data_send(I2C_x, 
-        DISPLAY_XXXX_CMD_ENTRY_MODE_SET | DISPLAY_XXXX_ENTRY_RIGHT | DISPLAY_XXXX_ENTRY_SHIFT_DECREMENT, 
-        DISPLAY_XXXX_SEND_SETTINGS);
-}
-/**
-* @brief lcd_xxxx_autoscroll_on
-*
-* 
-* @param[in] I2C_x  I2C peripheral
-* @return    ErrorStatus
-*/
-ErrorStatus lcd_xxxx_autoscroll_on(I2C_TypeDef* I2C_x){
-    return lcd_i2c_data_send(I2C_x, 
-        DISPLAY_XXXX_CMD_ENTRY_MODE_SET | DISPLAY_XXXX_ENTRY_SHIFT_INCREMENT | DISPLAY_XXXX_ENTRY_SHIFT_INCREMENT, 
-        DISPLAY_XXXX_SEND_SETTINGS);
-}
-
-/**
-* @brief lcd_xxxx_autoscroll_off
-* 
-* 
-* @param[in] I2C_x  I2C peripheral
-* @return    ErrorStatus
-*/
-ErrorStatus lcd_xxxx_autoscroll_off(I2C_TypeDef* I2C_x){
-    return lcd_i2c_data_send(I2C_x, 
-        DISPLAY_XXXX_CMD_ENTRY_MODE_SET | DISPLAY_XXXX_ENTRY_SHIFT_DECREMENT | DISPLAY_XXXX_ENTRY_SHIFT_DECREMENT, 
-        DISPLAY_XXXX_SEND_SETTINGS);
-}
