@@ -37,7 +37,7 @@ lis3dh_status_t lis3dh_write_to_reg(SPI_TypeDef *SPI_x,uint8_t reg,uint8_t data)
     reg = reg | WRITE;
     data_tx[0]=reg;
     data_tx[1]=data;
-    spi_transmit(SPI_x,data_tx,2);
+    spi_transmit(SPI_x,data_tx,2,50);
     lis3dh_cs_enable;
     return compliete;
     
@@ -66,8 +66,8 @@ lis3dh_status_t lis3dh_read_from_reg(SPI_TypeDef *SPI_x,uint8_t reg,uint8_t *buf
         reg= reg | READ | MULTI_READ ;
     }
     data[0]=reg;
-    spi_transmit(SPI_x,data,1); 
-    spi_receive(SPI_x,buff,size);
+    spi_transmit(SPI_x,data,1,50); 
+    spi_receive(SPI_x,buff,size,50);
     
     lis3dh_cs_enable;
     

@@ -17,10 +17,10 @@ rcc_clocks_t rcc_clocks = {
     .source_val.lse = 32768,
     .source_val.lsi = 32000,
     
-    .pll.DIVM = 7, 
+    .pll.DIVM = 14, 
     .pll.DIVN = 84,   
     .pll.DIVP = 2, 
-    .pll.DIVQ = 2, 
+    .pll.DIVQ = 8, 
     .pll.DIVR = 2,
     
     .prescaler.HPRE    = 1, 

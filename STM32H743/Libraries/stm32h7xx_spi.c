@@ -2,7 +2,7 @@
 #include "stm32h7xx_gpio.h"
 #include <string.h>
 #include "gpio_config.h"
-
+#include "stm32h7xx_interrupts.h"
 
 /******************************* FUNCTIONS DECLARATION ************************************/
 void reset_spi_errors(SPI_TypeDef* SPI_x);
@@ -34,21 +34,36 @@ void spi_enable_config(SPI_TypeDef* SPI_x);
 spi_config_t spi_config = {
     
     /* SPI1 */
+//    .spi_mode.spi_1=master,                             //режим мастер или слейв
+//    
+//    .spi_communication_mode.spi_1 = simplex_receiver,     //режим работы
+//    
+//    .spi_cpol.spi_1 = cpol_1,                           //стартовый уровень CLK высокий или низкий
+//    
+//    .spi_cpha.spi_1 = second,                           //фаза 
+//    
+//    .spi_data_size.spi_1=32,                            //используемых бит в буфере `
+//    
+//    .spi_datas_in_one_fifo.spi_1=1,                     //количество 
+//
+//    .spi_1_2_3_source = per_ck,                         //источник тактирования 
+    //    
+    //    .spi_mbr_presc.spi_1=16                             //предделитель 
     .spi_mode.spi_1=master,                             //режим мастер или слейв
     
-    .spi_communication_mode.spi_1 = simplex_receiver,     //режим работы
+    .spi_communication_mode.spi_1 = simplex_transmitter,     //режим работы
     
     .spi_cpol.spi_1 = cpol_1,                           //стартовый уровень CLK высокий или низкий
     
     .spi_cpha.spi_1 = second,                           //фаза 
     
-    .spi_data_size.spi_1=32,                            //используемых бит в буфере `
+    .spi_data_size.spi_1=8,                            //используемых бит в буфере `
     
-    .spi_datas_in_one_fifo.spi_1=1,                     //количество 
-
-    .spi_1_2_3_source = per_ck,                         //источник тактирования 
+    .spi_datas_in_one_fifo.spi_1=4,                     //количество 
     
-    .spi_mbr_presc.spi_1=16                             //предделитель 
+    .spi_1_2_3_source = pll_1_q,                         //источник тактирования 
+    
+    .spi_mbr_presc.spi_1=256                             //предделитель 
         /* SPI2 */
         
         /* SPI3 */
@@ -134,32 +149,106 @@ ErrorStatus spi_init(SPI_TypeDef* SPI_x)
 * @return 
 */
 
-void spi_transmit(SPI_TypeDef *SPI_x,uint8_t *buff,uint16_t data_sz)
+void spi_transmit(SPI_TypeDef *SPI_x,uint8_t *buff,uint16_t data_sz,uint32_t timeout_ms)
 {
+    reset_spi_errors(SPI_x);
+    
+    uint32_t timeout_counter=0;
     if(data_sz<=0 || data_sz >0x1fff)
     {
         return;
     } 
     uint8_t i=0; 
     
+    SPI_x->CR2 &=   ~(SPI_CR2_TSIZE_Msk); // Clear TSIZE (it not clear after rewraiting)
+    if(data_sz % 2 == 0){
+        SPI_x->CR2 |=   ((data_sz+1)<< SPI_CR2_TSIZE_Pos); // set dsize
+    }
+    else{
+        SPI_x->CR2 |=   (data_sz << SPI_CR2_TSIZE_Pos); // set dsize
+    }
+    SPI_x->CR1 |=   SPI_CR1_CSTART; //start
     
-    SPI_x->CR2 &=  ~(SPI_CR2_TSIZE_Msk); // Clear TSIZE (it not clear after rewraiting)
-    SPI_x->CR2 |=  (data_sz << SPI_CR2_TSIZE_Pos); // set dsize
-    SPI_x->CR1 |= SPI_CR1_CSTART; //start
-    while ( i < data_sz) 
-    {    
-        while (!(SPI_x->SR & SPI_SR_TXP)) {}; //wait free fifo 
+    while ( i < data_sz) {    
+        timeout_counter = systick_get() + timeout_ms;
+        while (!(SPI_x->SR & SPI_SR_TXP)){
+            if (timeout_counter<systick_get()) {
+                break;
+            }
+        } //wait free fifo 
         *((__IO uint8_t *)&(SPI_x->TXDR)) = buff[i];
         i++;
     }
     // (void)(SPI_x->TXDR);
-    while (!(SPI_x->SR & SPI_SR_EOT) ) {}; //wait end of transaction
+        timeout_counter = systick_get() + timeout_ms;
+    while (!(SPI_x->SR & SPI_SR_TXC) ) { // waititng while fifo TX complite
+        if (timeout_counter<systick_get()) {
+            break;
+        }
+    }
+    timeout_counter = systick_get() + timeout_ms;
+    while (!(SPI_x->SR & SPI_SR_EOT)){
+        if (timeout_counter<systick_get()) {
+            break;
+        }
+    } //wait end of transaction
+ 
     SPI_x->IFCR |= SPI_IFCR_EOTC; // DISABLE End of Transaction Flag
-    // тут возможно нужна незначительная задержка, а то CS слишком быстро поднимается
-    // while (!(SPI_x->SR & SPI_SR_TXC) ) {};
-    
 }
 
+/**
+* @brief spi_transmit
+*  Функция передачи данных по SPI   8 бит
+*  
+* 
+* @param[in] SPI_TypeDef* SPI_x    - используемый SPI
+* @return 
+*/
+
+void spi_16_transmit(SPI_TypeDef *SPI_x,uint16_t *buff,uint16_t data_sz,uint32_t timeout_ms)
+{
+    
+//    uint32_t timeout_counter=0;
+//    if(data_sz<=0 || data_sz >0x1fff)
+//    {
+//        return;
+//    } 
+//    uint8_t i=0; 
+//    
+//    SPI_x->CR2 &=   ~(SPI_CR2_TSIZE_Msk); // Clear TSIZE (it not clear after rewraiting)
+//    SPI_x->CR2 |=   (data_sz << SPI_CR2_TSIZE_Pos); // set dsize
+////        SPI_x->CR2 &=   ~(SPI_CR2_TSER_Msk); // Clear TSIZE (it not clear after rewraiting)
+////    SPI_x->CR2 |=   (data_sz << SPI_CR2_TSER_Pos); // set dsize
+//    SPI_x->CR1 |=   SPI_CR1_CSTART; //start
+//    while ( i < data_sz) {    
+//        timeout_counter = systick_get() + timeout_ms;
+//        while (!(SPI_x->SR & SPI_SR_TXP)){
+//            if (timeout_counter<systick_get()) {
+//                break;
+//            }
+//        } //wait free fifo 
+////        *((__IO uint8_t *)&(SPI_x->TXDR)) = buff[i];
+//        *(( __IO uint8_t *)&(SPI_x->TXDR)) = buff[i];
+//
+//        i++;
+//    }
+//    // (void)(SPI_x->TXDR);
+//        timeout_counter = systick_get() + timeout_ms;
+//    while (!(SPI_x->SR & SPI_SR_TXC) ) { // waititng while fifo TX complite
+//        if (timeout_counter<systick_get()) {
+//            break;
+//        }
+//    }
+//    timeout_counter = systick_get() + timeout_ms;
+//    while (!(SPI_x->SR & SPI_SR_EOT)){
+//        if (timeout_counter<systick_get()) {
+//            break;
+//        }
+//    } //wait end of transaction
+// 
+//    SPI_x->IFCR |= SPI_IFCR_EOTC; // DISABLE End of Transaction Flag
+
+}
 
 /**
 * @brief spi_receive_from_reg
@@ -169,19 +258,22 @@ void spi_transmit(SPI_TypeDef *SPI_x,uint8_t *buff,uint16_t data_sz)
 * @param[in] SPI_TypeDef* SPI_x    - используемый SPI
 * @return 
 */
-void spi_receive(SPI_TypeDef *SPI_x,uint8_t *buff,uint16_t data_sz) 
+void spi_receive(SPI_TypeDef *SPI_x,uint8_t *buff,uint16_t data_sz,uint32_t timeout_ms) 
 {
-	while (data_sz) 
-    { 
+            uint32_t timeout_counter=0;
+	while (data_sz){ 
        //while (!(SPI_x->SR & SPI_SR_DXP)) {};
-        while (!(SPI_x->SR & SPI_SR_RXP)) {}; //если приняли больше 16 байт , то оверрун сразу, надо через прерывание сделать
+        while (!(SPI_x->SR & SPI_SR_RXP)){
+            if (timeout_counter<systick_get()) {
+                break;
+            } //если приняли больше 16 байт , то оверрун сразу, надо через прерывание сделать
           // while ((SPI_x->SR & SPI_SR_RXWNE)) {};
         *buff++ = *((__IO uint8_t *)&(SPI_x->RXDR));
         data_sz--;
     }
     //	while (SPI_x->SR & SPI_SR_RXP) {};
 }
-
+}
 
 /**
 * @brief ssi_single_receive
@@ -243,7 +335,7 @@ void spi_pin_config(SPI_TypeDef* SPI_x)
     
     /**** I2C gpio setting ****/
     if( SPI_x == SPI1 ){
-        //SPI1_MOSI - PB5
+        //SPI1_MOSI - PA7
         gpio_config.port     = SPI1_MOSI_PORT;
         gpio_config.pin      = SPI1_MOSI_PIN;
         gpio_config.mode     = gpio_af;
@@ -251,7 +343,7 @@ void spi_pin_config(SPI_TypeDef* SPI_x)
         gpio_config.otype    = gpio_otype_pp;
         gpio_config.pupd     = gpio_pupd_up;
         gpio_configuration ( &gpio_config );
-        SPI1_MOSI_PORT->AFR[0] |= (0x05 << GPIO_AFRL_AFSEL5_Pos); //AF = 5 
+        SPI1_MOSI_PORT->AFR[0] |= (0x05 << GPIO_AFRL_AFSEL7_Pos); //AF = 5 
         
         //SPI1_MISO - PA6
         gpio_config.port     = SPI1_MISO_PORT;
@@ -273,7 +365,7 @@ void spi_pin_config(SPI_TypeDef* SPI_x)
         gpio_configuration ( &gpio_config );
         SPI1_CLK_PORT->AFR[0] |= (0x05 << GPIO_AFRL_AFSEL5_Pos); //AF = 5 
         
-        //SPI1_CS - PD14
+        //SPI1_CS - PA4
         gpio_config.port     = SPI1_CS_PORT;
         gpio_config.pin      = SPI1_CS_PIN;
         gpio_config.mode     = gpio_output;
@@ -296,11 +388,11 @@ void spi_source_config(SPI_TypeDef* SPI_x)
         }
         else if (spi_config.spi_1_2_3_source == pll_2_p)
         {
-            RCC->D2CCIP1R   |=(0x01 <<RCC_D2CCIP1R_SPI123SEL_Pos); // Тактируем SPI от
+            RCC->D2CCIP1R   |=(0x01 <<RCC_D2CCIP1R_SPI123SEL_Pos); // Тактируем SPI от PLL2_P
         }
         else if (spi_config.spi_1_2_3_source == pll_3_p)
         {
-            RCC->D2CCIP1R   |=(0x02 <<RCC_D2CCIP1R_SPI123SEL_Pos); // Тактируем SPI от 
+            RCC->D2CCIP1R   |=(0x02 <<RCC_D2CCIP1R_SPI123SEL_Pos); // Тактируем SPI от PLL3_P
         }
         else if (spi_config.spi_1_2_3_source == per_ck)
         {

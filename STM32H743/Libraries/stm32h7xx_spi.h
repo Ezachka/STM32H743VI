@@ -144,9 +144,10 @@ extern "C" {
 
     
     ErrorStatus spi_init(SPI_TypeDef* SPI_x);
-    void spi_receive(SPI_TypeDef *SPI_x,uint8_t *buff,uint16_t data_sz);
-    void spi_transmit(SPI_TypeDef *SPI_x,uint8_t *buff,uint16_t data_sz);
-    
+    void spi_receive(SPI_TypeDef *SPI_x,uint8_t *buff,uint16_t data_sz,uint32_t timeout_ms);
+    void spi_transmit(SPI_TypeDef *SPI_x,uint8_t *buff,uint16_t data_sz,uint32_t timeout_ms);
+    void spi_16_transmit(SPI_TypeDef *SPI_x,uint16_t *buff,uint16_t data_sz,uint32_t timeout_ms);
+
     uint32_t ssi_single_receive(SPI_TypeDef *SPI_x);//,uint8_t resolution_bit);
     
 #ifdef	__cplusplus

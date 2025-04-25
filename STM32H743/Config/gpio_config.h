@@ -44,14 +44,14 @@ extern "C" {
 #define I2C1_SDA_PORT       GPIOB
 #define I2C1_SDA_PIN        GPIO_PIN_9
     /* SPI GPIOs */  
-#define SPI1_MOSI_PORT      GPIOB
-#define SPI1_MOSI_PIN       GPIO_PIN_5
+#define SPI1_MOSI_PORT      GPIOA
+#define SPI1_MOSI_PIN       GPIO_PIN_7
 #define SPI1_MISO_PORT      GPIOA
 #define SPI1_MISO_PIN       GPIO_PIN_6
 #define SPI1_CLK_PORT       GPIOA
 #define SPI1_CLK_PIN        GPIO_PIN_5
-#define SPI1_CS_PORT        GPIOD
-#define SPI1_CS_PIN         GPIO_PIN_14
+#define SPI1_CS_PORT        GPIOA
+#define SPI1_CS_PIN         GPIO_PIN_4
     
     
     /* SW TX USART GPIOs */  

@@ -2365,6 +2365,24 @@
     <group>
         <name>Services</name>
         <group>
+            <name>display</name>
+            <file>
+                <name>$PROJ_DIR$\STM32H743\Services\display\bitmap.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\STM32H743\Services\display\fonts.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\STM32H743\Services\display\fonts.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\STM32H743\Services\display\SH1106.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\STM32H743\Services\display\SH1106.h</name>
+            </file>
+        </group>
+        <group>
             <name>display_xxxx</name>
             <file>
                 <name>$PROJ_DIR$\STM32H743\Services\display_xxxx\display_xxxx.c</name>
@@ -2373,24 +2391,12 @@
                 <name>$PROJ_DIR$\STM32H743\Services\display_xxxx\display_xxxx.h</name>
             </file>
         </group>
-        <group>
-            <name>display</name>
-            <file>
-                <name>$PROJ_DIR$\STM32H743\Services\Display\bitmap.h</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\STM32H743\Services\Display\fonts.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\STM32H743\Services\Display\fonts.h</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\STM32H743\Services\Display\SH1106.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\STM32H743\Services\Display\SH1106.h</name>
-            </file>
-        </group>
+        <file>
+            <name>$PROJ_DIR$\STM32H743\Services\ad_9833.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\STM32H743\Services\ad_9833.h</name>
+        </file>
         <file>
             <name>$PROJ_DIR$\STM32H743\Services\encoder.c</name>
         </file>

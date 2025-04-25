@@ -12,6 +12,7 @@
 #include "peripherals_init.h"
 #include "stm32h7xx_interrupts.h"
 #include "dwt_tim.h"
+#include "ad_9833.h"
 
 #include "gpio_config.h"
 #include "leds.h"
@@ -28,6 +29,11 @@ init_status_t init_status;
 
 char line_1[20]="    Hello";
 char line_2[20]="    World!";
+char line_11[20]="    You are";
+char line_22[20]="     GAY!";
+uint8_t buff_test_8[32];
+uint16_t buff_test_16[16];
+uint8_t buff_test_size=10;
 int main()
 { 
     init_status.rcc_init_status=rcc_clock_init(); 
@@ -44,7 +50,13 @@ int main()
     //  SoftUartInit(0, USART_SW_TX_PORT, 12, 0, 0); //
     lcd_xxxx_init(I2C1,DISPLAY_XXXX_I2C_ADDR,16, 2,true);
     //  SH1106_Init();
-    
+    //    ad_9833_init(SPI1);
+    for(uint8_t i = 0; i<32;i++){
+        buff_test_8[i]=i+1;
+    }
+    for(uint8_t i = 0; i<16;i++){
+        buff_test_16[i]=i+1;
+    }
 	while(1)
 	{
         leds_update();
@@ -68,6 +80,7 @@ int main()
         
         if( systick_div_10hz )
         {    
+      //    ad_9833_update(SPI1);
             systick_div_10hz = false; 
             ///display test
             //            SH1106_GotoXY(10, 10);
@@ -79,12 +92,20 @@ int main()
         if( systick_div_1hz )
         {  
             systick_div_1hz = false; 
-            
-            lcd_xxxx_change_line(line_1,1);
-            lcd_xxxx_change_line(line_2,2);
-  
-
-//    lcd_xxxx_write_on_line(I2C1,"    Hello",1);
+            if((BUTTON_1_PORT->IDR & BUTTON_1_PIN)){
+                lcd_xxxx_change_line(line_1,1);
+                lcd_xxxx_change_line(line_2,2);
+            }
+            else{
+                lcd_xxxx_change_line(line_11,1);
+                lcd_xxxx_change_line(line_22,2);
+            }
+//            ad_9833_enable;
+           spi_transmit(SPI1,buff_test_8,buff_test_size,50);
+   //                     spi_16_transmit(SPI1,buff_test_16,buff_test_size,50);
+//
+//            ad_9833_disable;
+            //    lcd_xxxx_write_on_line(I2C1,"    Hello",1);
 //    lcd_xxxx_write_on_line(I2C1,"    World!",2);
 //            lcd_xxxx_cursor(I2C1,5, 1);
         }
