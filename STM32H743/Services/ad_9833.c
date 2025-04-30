@@ -55,8 +55,8 @@ ErrorStatus ad_9833_data_write(SPI_TypeDef *SPI_x,uint16_t data){
     data_2[1]=(uint8_t)(data);
     data_2[2]=0x00;
     data_2[3]=0x00;
-    spi_transmit(SPI_x,data_2,2,50);///@TODO dsize 2 sometimes makes dont lower tx pin after transmit
-    //spi_16_transmit(SPI_x,&data,1,50);///@TODO 
+   // spi_transmit(SPI_x,data_2,2,50);///@TODO dsize 2 sometimes makes dont lower tx pin after transmit
+    spi_16_transmit(SPI_x,&data,1,50);///@TODO 
 
     delay_ms(1);
     ad_9833_disable;

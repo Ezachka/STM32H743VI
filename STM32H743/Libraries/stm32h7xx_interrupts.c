@@ -1,6 +1,7 @@
 
 #include "stm32h7xx_interrupts.h"
 #include "stm32h7xx_usart.h"
+#include "stm32h7xx_spi.h"
 #include "softuart.h"
 #include "gpio_config.h"
 /**
@@ -152,11 +153,23 @@ void ADC1_2_IRQHandler ( void )
 
 
 /**
+* @brief  This function handles SPI1_IRQHandler.
+* @param  None
+* @retval None
+*/
+void SPI1_IRQHandler ( void )
+{  
+    spi_1_irq();
+    return;
+}
+
+/**
 * @brief  This function returns the value of the Systick interrupt counter.
 * @param  None
 * @retval uint_32t milliseconds
 */
 volatile uint32_t systick_counter=0;
+volatile uint32_t systick_counter_2=0;
 uint32_t systick_get ( void )
 {
     return systick_counter;
@@ -192,7 +205,7 @@ volatile _Bool systick_div_500hz;
 void SysTick_Handler ( void )
 {
 	systick_counter++;
-    
+    systick_counter_2++;
     systick_f = 1;
     
     if( ((systick_counter-1) % 1000) == 0 )      systick_div_1hz   = 1; 

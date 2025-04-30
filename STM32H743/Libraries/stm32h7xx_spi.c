@@ -29,6 +29,8 @@ void spi_phase_config(SPI_TypeDef* SPI_x);
 
 void spi_enable_config(SPI_TypeDef* SPI_x);
 
+
+spi_info_t spi_1_info;
 /******************************* SPI CONFIG ************************************/
 
 spi_config_t spi_config = {
@@ -59,7 +61,7 @@ spi_config_t spi_config = {
     
     .spi_data_size.spi_1=8,                            //используемых бит в буфере `
     
-    .spi_datas_in_one_fifo.spi_1=4,                     //количество 
+    .spi_datas_in_one_fifo.spi_1=8,                     //количество 
     
     .spi_1_2_3_source = pll_1_q,                         //источник тактирования 
     
@@ -134,11 +136,55 @@ ErrorStatus spi_init(SPI_TypeDef* SPI_x)
     spi_communication_mode_config(SPI_x);
     spi_master_slave_config(SPI_x);
     
+    ///@TODO Move it in own func
+    if(SPI_x==SPI1){
+    SPI1->IER |=    SPI_IER_OVRIE | SPI_IER_UDRIE ;//|
+             //       SPI_IER_RXPIE | SPI_IER_TXPIE |
+             //       SPI_IER_EOTIE;
+    
+    NVIC_EnableIRQ( SPI1_IRQn );   
+    }
+    ///
     spi_enable_config(SPI_x);
     
     return SUCCESS;
 }
 
+
+/**
+* @brief spi_1_irq
+*  
+* 
+* @param[in] 
+* @return 
+*/
+
+void spi_1_irq(void){
+    
+    if(SPI1 -> SR & SPI_SR_OVR){
+        SPI1 -> IFCR |= SPI_IFCR_OVRC;
+        spi_1_info.it_counts.OVR++;
+        return;
+    }
+    if(SPI1 -> SR & SPI_SR_UDR){
+        SPI1 -> IFCR |= SPI_IFCR_UDRC;
+        spi_1_info.it_counts.UDR++;
+        return;
+    }
+    if(SPI1 -> SR & SPI_SR_TXP){
+        spi_1_info.it_counts.TXP++;
+        return;
+    }
+    if(SPI1 -> SR & SPI_SR_RXP){
+        spi_1_info.it_counts.RXP++;
+        return;
+    }
+    if(SPI1 -> SR & SPI_SR_EOT){
+        spi_1_info.it_counts.EOT++;
+        return;
+    }
+    return;
+}
 
 /**
 * @brief spi_transmit
@@ -161,12 +207,9 @@ void spi_transmit(SPI_TypeDef *SPI_x,uint8_t *buff,uint16_t data_sz,uint32_t tim
     uint8_t i=0; 
     
     SPI_x->CR2 &=   ~(SPI_CR2_TSIZE_Msk); // Clear TSIZE (it not clear after rewraiting)
-    if(data_sz % 2 == 0){
-        SPI_x->CR2 |=   ((data_sz+1)<< SPI_CR2_TSIZE_Pos); // set dsize
-    }
-    else{
-        SPI_x->CR2 |=   (data_sz << SPI_CR2_TSIZE_Pos); // set dsize
-    }
+
+    SPI_x->CR2 |=   (data_sz << SPI_CR2_TSIZE_Pos); // set dsize
+
     SPI_x->CR1 |=   SPI_CR1_CSTART; //start
     
     while ( i < data_sz) {    
@@ -180,12 +223,7 @@ void spi_transmit(SPI_TypeDef *SPI_x,uint8_t *buff,uint16_t data_sz,uint32_t tim
         i++;
     }
     // (void)(SPI_x->TXDR);
-        timeout_counter = systick_get() + timeout_ms;
-    while (!(SPI_x->SR & SPI_SR_TXC) ) { // waititng while fifo TX complite
-        if (timeout_counter<systick_get()) {
-            break;
-        }
-    }
+
     timeout_counter = systick_get() + timeout_ms;
     while (!(SPI_x->SR & SPI_SR_EOT)){
         if (timeout_counter<systick_get()) {
@@ -197,57 +235,60 @@ void spi_transmit(SPI_TypeDef *SPI_x,uint8_t *buff,uint16_t data_sz,uint32_t tim
 }
 
 /**
-* @brief spi_transmit
-*  Функция передачи данных по SPI   8 бит
-*  
+* @brief spi_16_transmit
+*  Функция передачи данных по SPI   16 бит 
+*  Work!
 * 
 * @param[in] SPI_TypeDef* SPI_x    - используемый SPI
 * @return 
 */
 
-void spi_16_transmit(SPI_TypeDef *SPI_x,uint16_t *buff,uint16_t data_sz,uint32_t timeout_ms)
-{
+void spi_16_transmit(SPI_TypeDef *SPI_x,uint16_t *buff,uint16_t data_sz,uint32_t timeout_ms){
+    uint32_t timeout_counter=0;
+    uint16_t data_element_id=0;
+    uint8_t data_buf_8[0x1fff];
+    if(data_sz==0 || data_sz>0x1fff)
+    {
+        return;
+    } 
+    SPI_x->CR2 &=   ~(SPI_CR2_TSIZE_Msk); // Clear TSIZE (it not clear after rewraiting)
     
-//    uint32_t timeout_counter=0;
-//    if(data_sz<=0 || data_sz >0x1fff)
-//    {
-//        return;
-//    } 
-//    uint8_t i=0; 
-//    
-//    SPI_x->CR2 &=   ~(SPI_CR2_TSIZE_Msk); // Clear TSIZE (it not clear after rewraiting)
-//    SPI_x->CR2 |=   (data_sz << SPI_CR2_TSIZE_Pos); // set dsize
-////        SPI_x->CR2 &=   ~(SPI_CR2_TSER_Msk); // Clear TSIZE (it not clear after rewraiting)
-////    SPI_x->CR2 |=   (data_sz << SPI_CR2_TSER_Pos); // set dsize
-//    SPI_x->CR1 |=   SPI_CR1_CSTART; //start
-//    while ( i < data_sz) {    
-//        timeout_counter = systick_get() + timeout_ms;
-//        while (!(SPI_x->SR & SPI_SR_TXP)){
-//            if (timeout_counter<systick_get()) {
-//                break;
-//            }
-//        } //wait free fifo 
-////        *((__IO uint8_t *)&(SPI_x->TXDR)) = buff[i];
-//        *(( __IO uint8_t *)&(SPI_x->TXDR)) = buff[i];
-//
-//        i++;
-//    }
-//    // (void)(SPI_x->TXDR);
-//        timeout_counter = systick_get() + timeout_ms;
-//    while (!(SPI_x->SR & SPI_SR_TXC) ) { // waititng while fifo TX complite
-//        if (timeout_counter<systick_get()) {
-//            break;
-//        }
-//    }
-//    timeout_counter = systick_get() + timeout_ms;
-//    while (!(SPI_x->SR & SPI_SR_EOT)){
-//        if (timeout_counter<systick_get()) {
-//            break;
-//        }
-//    } //wait end of transaction
-// 
-//    SPI_x->IFCR |= SPI_IFCR_EOTC; // DISABLE End of Transaction Flag
-
+    //
+    data_sz=data_sz*2;
+    memset(data_buf_8,0x00,0x1fff);
+    memcpy(data_buf_8,buff,data_sz); 
+    
+    for(uint16_t i = 0; i < data_sz / 2; i++) {
+        data_buf_8[2 * i]     = (buff[i] >> 8) & 0xFF;  // старший байт
+        data_buf_8[2 * i + 1] = buff[i] & 0xFF;         // младший байт
+    }
+    if(data_buf_8[data_sz-1]&0x01){
+        data_sz=data_sz+1;
+    }
+    SPI_x->CR1 |=   SPI_CR1_CSTART; //start
+    SPI_x->CR2 |=   (data_sz << SPI_CR2_TSIZE_Pos); // set dsize
+    while ( data_element_id < data_sz) {    
+        timeout_counter = systick_get() + timeout_ms;
+        while (!(SPI_x->SR & SPI_SR_TXP)){
+            if (timeout_counter<systick_get()) {
+                asm("NOP");
+                break;
+            }
+        } //wait free fifo 
+        *((__IO uint8_t *)&(SPI_x->TXDR)) = data_buf_8[data_element_id];
+        data_element_id++;
+    }
+    timeout_counter = systick_get() + timeout_ms;
+    while (!(SPI_x->SR & SPI_SR_EOT)){
+        if (timeout_counter<systick_get()) {
+            asm("NOP");
+            break;
+        }
+    } //wait end of transaction    
+    if(SPI_x->SR & SPI_SR_EOT) {  SPI_x->IFCR |= SPI_IFCR_EOTC;} // DISABLE End of Transaction Flag
+    if(SPI_x->SR & SPI_SR_SUSP){  SPI_x->IFCR |= SPI_IFCR_SUSPC;} 
+    if(SPI_x->SR & SPI_SR_TXTF){  SPI_x->IFCR |= SPI_IFCR_TXTFC;} 
+    
 }
 
 /**
