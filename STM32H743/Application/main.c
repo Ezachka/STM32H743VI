@@ -47,10 +47,10 @@ int main()
     init_status.spi_init_status.spi_1 = spi_init(SPI1);
     init_status.usart_init_status.usart_1 = usart_init (USART1,9600,even_parity,none_swap);
     
-    //  SoftUartInit(0, USART_SW_TX_PORT, 12, 0, 0); //
+      SoftUartInit(0, USART_SW_TX_PORT, 12, 0, 0); //
     lcd_xxxx_init(I2C1,DISPLAY_XXXX_I2C_ADDR,16, 2,true);
     //  SH1106_Init();
-    //    ad_9833_init(SPI1);
+        ad_9833_init(SPI1);
     for(uint8_t i = 0; i<32;i++){
         buff_test_8[i]=i+1;
     }
@@ -81,7 +81,7 @@ int main()
         if( systick_div_10hz )
         {    
             systick_div_10hz = false; 
-            //    ad_9833_update(SPI1);
+               ad_9833_update(SPI1);
             
             
         }
@@ -96,15 +96,15 @@ int main()
                 lcd_xxxx_change_line(line_11,1);
                 lcd_xxxx_change_line(line_22,2);
             }
-            ad_9833_enable;
-            buff_test_16[0]=buff_test_size;
-            // spi_transmit(SPI1,buff_test_8,buff_test_size,50);buff_test_16
-            spi_16_transmit(SPI1,buff_test_16,buff_test_size,50);
-            buff_test_size++; 
-            if(buff_test_size>5){
-                buff_test_size=1;
-            }
-            ad_9833_disable;
+//            ad_9833_enable;
+//            buff_test_16[0]=buff_test_size;
+//            // spi_transmit(SPI1,buff_test_8,buff_test_size,50);buff_test_16
+//            spi_16_transmit(SPI1,buff_test_16,buff_test_size,50);
+//            buff_test_size++; 
+//            if(buff_test_size>5){
+//                buff_test_size=1;
+//            }
+//            ad_9833_disable;
             
             
         }

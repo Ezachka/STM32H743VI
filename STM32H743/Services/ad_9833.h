@@ -63,7 +63,7 @@ extern C {
     }control_reg_t;
     
     
-    typedef struct{
+    typedef struct __attribute__((packed)){
         char            name[7]; 
         bool            working;
         struct{
@@ -78,6 +78,13 @@ extern C {
             bool            sleep;
             bool            wake_up;
         }operations;
+        struct{
+           uint16_t     old_control_reg;
+           uint8_t      old_work_channel;
+           signal_t     old_signal_type;
+           float        old_freq[2];
+           float        old_phaze[2];
+        }params;
     }ad_9833_t;
     /****************************************************************************/  
     

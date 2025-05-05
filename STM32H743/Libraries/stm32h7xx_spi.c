@@ -262,7 +262,7 @@ void spi_16_transmit(SPI_TypeDef *SPI_x,uint16_t *buff,uint16_t data_sz,uint32_t
         data_buf_8[2 * i]     = (buff[i] >> 8) & 0xFF;  // старший байт
         data_buf_8[2 * i + 1] = buff[i] & 0xFF;         // младший байт
     }
-    if(data_buf_8[data_sz-1]&0x01){
+    if(data_buf_8[data_sz-1]&0x01){ ///@TODO Check it, if lest byte has 1 in zero bit, its dont lower afrer last byte
         data_sz=data_sz+1;
     }
     SPI_x->CR1 |=   SPI_CR1_CSTART; //start
