@@ -141,21 +141,21 @@ extern "C" {
         spi_sources_t spi_6_source;  
         
     }spi_config_t;
-      ///@TODO Move it in own func
+    ///@TODO Move it in own func
     typedef struct{
         struct{
-        uint16_t OVR;
-        uint16_t UDR;
-        uint16_t TXP;
-        uint16_t RXP;
-        uint16_t EOT;
+            uint16_t OVR;
+            uint16_t UDR;
+            uint16_t TXP;
+            uint16_t RXP;
+            uint16_t EOT;
         }it_counts;
     }spi_info_t;
     ////
     ErrorStatus spi_init(SPI_TypeDef* SPI_x);
     void spi_receive(SPI_TypeDef *SPI_x,uint8_t *buff,uint16_t data_sz,uint32_t timeout_ms);
     void spi_transmit(SPI_TypeDef *SPI_x,uint8_t *buff,uint16_t data_sz,uint32_t timeout_ms);
-    void spi_16_transmit(SPI_TypeDef *SPI_x,uint16_t *buff,uint16_t data_sz,uint32_t timeout_ms);
+    void spi_16_transmit(SPI_TypeDef *SPI_x,uint16_t *buff,uint16_t data_sz,bool MSB_first,uint32_t timeout_ms);
     void spi_1_irq (void);  
     uint32_t ssi_single_receive(SPI_TypeDef *SPI_x);//,uint8_t resolution_bit);
     

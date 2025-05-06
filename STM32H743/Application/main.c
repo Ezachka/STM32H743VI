@@ -34,6 +34,7 @@ char line_22[20]="     GAY!";
 uint8_t buff_test_8[32];
 uint16_t buff_test_16[16];
 uint8_t buff_test_size=4;
+float freq=1000.0f;
 int main()
 { 
     init_status.rcc_init_status=rcc_clock_init(); 
@@ -52,10 +53,10 @@ int main()
     //  SH1106_Init();
         ad_9833_init(SPI1);
     for(uint8_t i = 0; i<32;i++){
-        buff_test_8[i]=i+1;
+        buff_test_8[i]=i+2;
     }
     for(uint8_t i = 0; i<16;i++){
-        buff_test_16[i]=i+1;
+        buff_test_16[i]=i+2;
     }
 	while(1)
 	{
@@ -76,14 +77,18 @@ int main()
         {  
             systick_div_100hz = false;  
             lcd_xxxx_config_update(I2C1);
+//                        freq+=1;
+//            if (freq>4000){
+//                freq=1000.0f;
+//            }
+//            ad_9833_set_freq(freq);
+            ad_9833_update(SPI1);
         }
         
         if( systick_div_10hz )
         {    
             systick_div_10hz = false; 
-                ad_9833_update(SPI1);
-            
-            
+
         }
         if( systick_div_1hz )
         {  
@@ -96,9 +101,9 @@ int main()
                 lcd_xxxx_change_line(line_11,1);
                 lcd_xxxx_change_line(line_22,2);
             }
+                    
 
-            
-            
+
         }
     }//. while(1)
     

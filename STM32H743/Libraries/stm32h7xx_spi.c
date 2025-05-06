@@ -57,11 +57,11 @@ spi_config_t spi_config = {
     
     .spi_cpol.spi_1 = cpol_1,                           //стартовый уровень CLK высокий или низкий
     
-    .spi_cpha.spi_1 = second,                           //фаза 
+    .spi_cpha.spi_1 = first,                           //фаза 
     
     .spi_data_size.spi_1=8,                            //используемых бит в буфере `
     
-    .spi_datas_in_one_fifo.spi_1=8,                     //количество 
+    .spi_datas_in_one_fifo.spi_1=16,                     //количество 
     
     .spi_1_2_3_source = pll_1_q,                         //источник тактирования 
     
@@ -243,7 +243,7 @@ void spi_transmit(SPI_TypeDef *SPI_x,uint8_t *buff,uint16_t data_sz,uint32_t tim
 * @return 
 */
 
-void spi_16_transmit(SPI_TypeDef *SPI_x,uint16_t *buff,uint16_t data_sz,uint32_t timeout_ms){
+void spi_16_transmit(SPI_TypeDef *SPI_x,uint16_t *buff,uint16_t data_sz,bool MSB_first,uint32_t timeout_ms){
     uint32_t timeout_counter=0;
     uint16_t data_element_id=0;
     uint8_t data_buf_8[0x1fff];
@@ -255,15 +255,22 @@ void spi_16_transmit(SPI_TypeDef *SPI_x,uint16_t *buff,uint16_t data_sz,uint32_t
     
     //
     data_sz=data_sz*2;
-    memset(data_buf_8,0x00,0x1fff);
     
     for(uint16_t i = 0; i < data_sz / 2; i++) {
-        data_buf_8[2 * i]     = (buff[i] >> 8) & 0xFF;  // старший байт
-        data_buf_8[2 * i + 1] = buff[i] & 0xFF;         // младший байт
+        if(MSB_first){
+            data_buf_8[2 * i]     = (buff[i] >> 8) & 0xFF;  // старший байт
+            data_buf_8[2 * i + 1] = buff[i] & 0xFF;         // младший байт
+        }else{
+            data_buf_8[2 * i]     = buff[i] & 0xFF;         // младший байт
+            data_buf_8[2 * i + 1] = (buff[i] >> 8) & 0xFF;  // старший байт
+        }
     }
-    if(data_buf_8[data_sz-1]&0x01){
-        data_sz=data_sz+1;
-    }
+    
+    
+//    if(data_buf_8[data_sz-1]&0x01){
+//        data_sz=data_sz+1;
+//        data_buf_8[data_sz]=data_buf_8[data_sz+1]=0x00;
+//    }
     SPI_x->CR1 |=   SPI_CR1_CSTART; //start
     SPI_x->CR2 |=   (data_sz << SPI_CR2_TSIZE_Pos); // set dsize
     while ( data_element_id < data_sz) {    

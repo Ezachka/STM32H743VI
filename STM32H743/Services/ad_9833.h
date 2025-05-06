@@ -27,8 +27,8 @@ extern C {
 #define AD_9833_FREQ_REG_0          0x4000
 #define AD_9833_PHAZE_REG_0         0xC000
 #define AD_9833_PHAZE_REG_1         0xE000
-
-
+    
+    
     /****************************************************************************/    
     /******************************* STRUCTS ************************************/
     
@@ -91,12 +91,14 @@ extern C {
         }params;
     }ad_9833_t;
     /****************************************************************************/  
+
+    ErrorStatus ad_9833_init(SPI_TypeDef *SPI_x);
     
-ErrorStatus ad_9833_update(SPI_TypeDef *SPI_x);
-ErrorStatus ad_9833_init(SPI_TypeDef *SPI_x);
-
-
-
+    ErrorStatus ad_9833_update(SPI_TypeDef *SPI_x);
+    
+    void ad_9833_set_freq(float freq);
+    
+    
 #ifdef __cplusplus
 }
 #endif
