@@ -1,10 +1,10 @@
-It's just my hobbie CMSIS project for STM32  M7 core. ;
+It's just my hobbie CMSIS project for STM32  M7 core. 
 You can use libs:
     Low level:
 - RCC is ok.
 - i2c is great.
 - tim is ok.
-- usart is great.;
+- usart is great.
     High level:
 - display_xxx is great, for 1602 , 1604 display and others with i2c.
 - ad_9833 is great  (AD 9833 frequency generator).
