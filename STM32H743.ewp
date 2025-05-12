@@ -235,6 +235,7 @@
                     <state>CORE_CM7</state>
                     <state>HSE_VALUE=25000000UL</state>
                     <state>HSI_VALUE=64000000UL</state>
+                    <state>CSI_VALUE=4000000UL</state>
                 </option>
                 <option>
                     <name>CCPreprocFile</name>
@@ -364,6 +365,9 @@
                     <state>$PROJ_DIR$\STM32H743\Services</state>
                     <state>$PROJ_DIR$\STM32H743\Services\display</state>
                     <state>$PROJ_DIR$\STM32H743\Services\\display_xxxx</state>
+                    <state>$PROJ_DIR$\STM32H743\Services\usb</state>
+                    <state>$PROJ_DIR$\STM32H743\Services\usb\usb_lib</state>
+                    <state>$PROJ_DIR$\STM32H743\Services\usb\HAL</state>
                     <state>$PROJ_DIR$\STM32H743\Utils</state>
                 </option>
                 <option>
@@ -2194,6 +2198,12 @@
     <group>
         <name>Application</name>
         <file>
+            <name>$PROJ_DIR$\STM32H743\Application\comunnication.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\STM32H743\Application\comunnication.h</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\STM32H743\Application\main.c</name>
         </file>
     </group>
@@ -2391,17 +2401,20 @@
                 <name>$PROJ_DIR$\STM32H743\Services\display_xxxx\display_xxxx.h</name>
             </file>
         </group>
+        <group>
+            <name>usb</name>
+            <group>
+                <name>HAL</name>
+            </group>
+            <group>
+                <name>usb_lib</name>
+            </group>
+        </group>
         <file>
             <name>$PROJ_DIR$\STM32H743\Services\ad_9833.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\STM32H743\Services\ad_9833.h</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\STM32H743\Services\encoder.c</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\STM32H743\Services\encoder.h</name>
         </file>
         <file>
             <name>$PROJ_DIR$\STM32H743\Services\leds.c</name>

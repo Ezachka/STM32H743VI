@@ -4,7 +4,6 @@
 #ifdef	__cplusplus
 extern "C" {
 #endif
-#include "stm32h743xx.h"
     
 #include "stm32h7xx.h"
 #include <stdbool.h>   
@@ -14,6 +13,7 @@ extern "C" {
     {
         hse,    
         hsi,    
+        csi,
         lse,
         lsi
     }sources_t;
@@ -39,22 +39,37 @@ extern "C" {
             uint32_t lse;       /*!<  LSE clock frequency expressed in Hz  */ 
             uint32_t lsi;       /*!<  LSI clock frequency expressed in Hz  */ 
         }source_val;
-        sources_t pll_source_select;
+        
+        sources_t pll_1_source_select;
+        
+        sources_t per_source_select;
         
         struct{
             uint32_t sysclk;    /*!<  SYSCLK clock frequency expressed in Hz */
-            uint32_t cpu;      /*!<  clock frequency expressed in Hz   */
-            uint32_t hclk;      /*!<  clock frequency expressed in Hz   */           
+            uint32_t cpu_1;      /*!<  clock frequency expressed in Hz   */
+            uint32_t cpu_2;      /*!<  clock frequency expressed in Hz   */
+            uint32_t axi;       /*!<  clock frequency expressed in Hz   */
+            uint32_t ahb_1;      /*!<  clock frequency expressed in Hz   */
+            uint32_t ahb_2;      /*!<  clock frequency expressed in Hz  */
+            uint32_t ahb_4;      /*!<  clock frequency expressed in Hz  */
             uint32_t apb_1;      /*!<  clock frequency expressed in Hz  */
-            uint32_t apb_2;      /*!<  clock frequency expressed in Hz  */ 
+            uint32_t apb_2;      /*!<  clock frequency expressed in Hz  */
+            uint32_t apb_3;      /*!<  clock frequency expressed in Hz  */
+            uint32_t apb_4;      /*!<  clock frequency expressed in Hz  */
+            
         } bus_freq;
         
-        pll_t pll;
- 
+        pll_t pll_1;
+        pll_t pll_2;
+        pll_t pll_3;
+        
         struct {
+            uint16_t  D1CPRE;
             uint16_t  HPRE;
+            uint8_t  D1PPRE;
             uint8_t  D2PPRE1;
             uint8_t  D2PPRE2;
+            uint8_t  D3PPRE;
         }prescaler;
         
     }rcc_clocks_t;

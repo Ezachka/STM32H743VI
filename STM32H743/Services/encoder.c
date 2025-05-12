@@ -590,7 +590,7 @@ ErrorStatus sesnsa_reselect_protocol(encoder_t *encoder, protocol_type_t protoco
 * @return  статус
 */
 
-ErrorStatus sesnsa_reselect_boudrate(encoder_t *encoder,uint16_t boudrate )
+ErrorStatus sesnsa_reselect_boudrate(encoder_t *encoder,uint32_t boudrate )
 {     
     uint8_t data_to_9600_usart[6]  ={0x51,0xCF,0x03,0x89,0x01,0x8A};
     uint8_t data_to_57600_usart[6] ={0x51,0xCF,0x03,0x89,0x02,0x8B};

@@ -23,6 +23,8 @@
 #include "softuart.h"
 
 #include "display_xxxx.h"
+
+//#include "virtual_com_port.h"
 /* CM7 Main */
 
 init_status_t init_status;
@@ -43,6 +45,7 @@ int main()
     dwt_init();
     
     gpio_init(); 
+   // usb_init();
     led_init();  
     init_status.i2c_init_status.i2c_1 = i2c_init(I2C1);
     init_status.spi_init_status.spi_1 = spi_init(SPI1);
