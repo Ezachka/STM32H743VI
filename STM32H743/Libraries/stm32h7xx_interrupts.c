@@ -5,22 +5,27 @@
 #include "softuart.h"
 #include "gpio_config.h"
 
-//#include "stm32h7xx_hal_pcd.h"
-//#include "stm32h7xx_hal.h"
-//#include "virtual_com_port.h"
-//
-//extern PCD_HandleTypeDef hpcd_USB_FS;
-//void USB_LP_IRQHandler(void)
-//{
-//    HAL_PCD_IRQHandler(&hpcd_USB_FS);
-//    
-//}
-//
-//
-//void USB_CDC_RxHandler(uint8_t* buffer, uint32_t size)
-//{
-//    computer_packet_parser_data(buffer,size);
-//}
+#include "stm32h7xx_hal_pcd.h"
+#include "stm32h7xx_hal.h"
+#include "virtual_com_port.h"
+
+extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
+
+
+void OTG_FS_IRQHandler(void)
+{
+    HAL_PCD_IRQHandler(&hpcd_USB_OTG_FS);
+    
+}
+
+
+void USB_CDC_RxHandler(uint8_t* buffer, uint32_t size)
+{
+ //   computer_packet_parser_data(buffer,size);
+    asm("NOP");
+        return;
+
+}
 
 /**
 * @brief  This function handles USART1 Handler.

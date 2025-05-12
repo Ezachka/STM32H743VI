@@ -64,7 +64,28 @@ void gpio_init ( void )
     gpio_configuration ( &gpio_config );
     
     
-
+    /* USB GPIOs */
+    gpio_config.port     = USB_DP_PORT;
+    gpio_config.pin      = USB_DP_PIN;
+    gpio_config.mode     = gpio_af;
+    gpio_config.speed    = low_speed;
+    gpio_config.otype    = gpio_otype_od;
+    gpio_config.pupd     = gpio_pupd_nopull;
+    gpio_configuration ( &gpio_config );
+    USB_DP_PORT->AFR[1] |= (0x0A << GPIO_AFRH_AFSEL12_Pos); //AF = 10 (I2C1_SCL)
+    
+    
+    gpio_config.port     = USB_DN_PORT;
+    gpio_config.pin      = USB_DN_PIN;
+    gpio_config.mode     = gpio_af;
+    gpio_config.speed    = low_speed;
+    gpio_config.otype    = gpio_otype_od;
+    gpio_config.pupd     = gpio_pupd_nopull;
+    gpio_configuration ( &gpio_config );
+    USB_DN_PORT->AFR[1] |= (0x0A << GPIO_AFRH_AFSEL11_Pos); //AF = 10
+    
+    
+    
 }
 
     void init_status_update(void)

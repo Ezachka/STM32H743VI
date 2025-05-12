@@ -65,7 +65,11 @@ extern "C" {
 #define USART_1_TX_PIN      GPIO_PIN_6
 #define USART_1_RX_PORT     GPIOB
 #define USART_1_RX_PIN      GPIO_PIN_7
-    
+    /* USB GPIOs */ 
+#define USB_DP_PORT     GPIOA
+#define USB_DP_PIN      GPIO_PIN_12
+#define USB_DN_PORT     GPIOA
+#define USB_DN_PIN      GPIO_PIN_11   
 #ifdef __cplusplus
 }
 #endif 

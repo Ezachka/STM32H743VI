@@ -128,7 +128,7 @@ ErrorStatus rcc_clock_init ( void )
     RCC->CR |= RCC_CR_HSI48ON;
     while ( !(RCC->CR & RCC_CR_HSI48ON) ){}               //Wait until the HSI48 ON  
     RCC->D2CCIP2R   |= 0x03 <<(RCC_D2CCIP2R_USBSEL_Pos);                             //HSI48 clock  tu USB selected
-  //  RCC->APB1ENR1   |=  RCC_APB1ENR1_USBEN;                              //USB DS clock enable clock selected
+    RCC->AHB1ENR   |=  RCC_AHB1ENR_USB2OTGFSEN;                              //USB DS clock enable clock selected
 
     
     RCC->CFGR |= RCC_CFGR_SW_PLL1;                         // PLL1 select as system clock
