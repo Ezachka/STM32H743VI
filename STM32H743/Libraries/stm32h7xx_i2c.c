@@ -227,7 +227,28 @@ i2c_status_t i2c_recive( I2C_TypeDef* I2C_x,uint8_t addr, uint8_t *buff, uint8_t
     }
     return not_recived;
 }
+/**
+* @brief i2c_receive_from_reg
+*  Функция чтения с определенного регистра 
+* 
+*
+* @param[in] I2C_TypeDef* I2C_x    - используемый I2C
+* @param[in] uint8_t addr          - адрес подчиненного устройства
+* @param[in] uint8_t *buff         - буфер получаемых данных
+* @param[in] uint8_t data_len      - длина получаемых данных
+* @param[out] i2c_status_t         - Возвращает статус прогресса получения данных
+* @return 
+*/
 
+i2c_status_t i2c_receive_from_reg( I2C_TypeDef* I2C_x,uint8_t addr, uint8_t reg,uint8_t *buff_rx, uint8_t data_len_rx, uint32_t timeout_ms) 
+{
+    i2c_status_t status;
+    if((status=i2c_transmit(I2C_x,addr,&reg,1,timeout_ms))==transmitted){
+        status=i2c_recive(I2C_x,addr,buff_rx,data_len_rx,timeout_ms);
+        
+    }
+    return status;
+}
 /**
 * @brief i2c_transmit_it
 *  Функция начала передачи определенного кол-ва байт по определенному адресу, используя прерывания 

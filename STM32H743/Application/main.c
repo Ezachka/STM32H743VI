@@ -33,9 +33,11 @@ char line_1[20]="    Hello";
 char line_2[20]="    World!";
 char line_11[20]="    You are";
 char line_22[20]="     GAY!";
+static  uint8_t hello[]    = "Hello";
+
 uint8_t buff_test_8[32];
 uint16_t buff_test_16[16];
-uint8_t buff_test_size=4;
+uint8_t buff_test_size=5;
 float freq=1000.0f;
 int main()
 { 
@@ -104,7 +106,7 @@ int main()
                 lcd_xxxx_change_line(line_11,1);
                 lcd_xxxx_change_line(line_22,2);
             }
-                  CDC_Transmit_FS(buff_test_8,buff_test_size);  
+                  CDC_Transmit_FS(hello,buff_test_size);  
 
 
         }

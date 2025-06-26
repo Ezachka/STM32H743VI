@@ -1,8 +1,7 @@
 #include "buttons.h"
-#include "buzzer.h"
 #include "gpio_config.h"
-#include "stm32l4xx_interrupts.h"
-#include "stm32l4xx_tim.h"  
+#include "stm32h7xx_interrupts.h"
+#include "stm32h7xx_tim.h"  
 
 static const uint32_t short_freq_time    = 100;
 static const uint32_t long_freq_time     = 400;
@@ -14,7 +13,7 @@ static const uint16_t select_button_freq  = 440;  // A4 - Ля
 
 
 static const uint32_t short_push_time_config=30 ; // время от которого считается коротконе нажатие, антиджребезг
-static const uint32_t long_push_time_config =300 ; // время от которого считается длинное нажатие, 
+static const uint32_t long_push_time_config =700 ; // время от которого считается длинное нажатие, 
 
 
 void button_update( bool btn_pressed, uint32_t *start_time, bool *start_flag, bool *short_ban_flag, bool *short_push,
@@ -23,7 +22,7 @@ void button_update( bool btn_pressed, uint32_t *start_time, bool *start_flag, bo
 void buttons_clear(void);/// защита в случае зануления структуры
 
 
- buttons_t buttons;
+buttons_t buttons;
 
 
 
@@ -130,12 +129,12 @@ void buttons_update(void)
 {   
     
     ///
-    buttons.params.up.btn &= ~(1 << 0);
-    buttons.params.up.btn |= (BUTTON_UP_PORT->IDR & BUTTON_UP_PIN) ? 0 : (1 << 0);
-    
-    buttons.params.down.btn &= ~(1 << 0);
-    buttons.params.down.btn |= (BUTTON_DOWN_PORT->IDR & BUTTON_DOWN_PIN) ? 0 : (1 << 0);
-    
+//    buttons.params.up.btn &= ~(1 << 0);
+//    buttons.params.up.btn |= (BUTTON_UP_PORT->IDR & BUTTON_UP_PIN) ? 0 : (1 << 0);
+//    
+//    buttons.params.down.btn &= ~(1 << 0);
+//    buttons.params.down.btn |= (BUTTON_DOWN_PORT->IDR & BUTTON_DOWN_PIN) ? 0 : (1 << 0);
+//    
     buttons.params.left.btn &= ~(1 << 0);
     buttons.params.left.btn |= (BUTTON_LEFT_PORT->IDR & BUTTON_LEFT_PIN) ? 0 : (1 << 0);
     
@@ -150,13 +149,13 @@ void buttons_update(void)
     {
      buttons_clear();
     }
-    button_update( buttons.params.up.btn, &buttons.params.up.start_time, &buttons.params.up.start_flag,
-                  &buttons.params.up.short_ban_flag, &buttons.up.short_push, &buttons.up.long_push,
-                  systick_get(), buttons.config.short_push_time, buttons.config.long_push_time );
-    
-    button_update( buttons.params.down.btn, &buttons.params.down.start_time, &buttons.params.down.start_flag,
-                  &buttons.params.down.short_ban_flag, &buttons.down.short_push, &buttons.down.long_push,
-                  systick_get(), buttons.config.short_push_time, buttons.config.long_push_time );
+//    button_update( buttons.params.up.btn, &buttons.params.up.start_time, &buttons.params.up.start_flag,
+//                  &buttons.params.up.short_ban_flag, &buttons.up.short_push, &buttons.up.long_push,
+//                  systick_get(), buttons.config.short_push_time, buttons.config.long_push_time );
+//    
+//    button_update( buttons.params.down.btn, &buttons.params.down.start_time, &buttons.params.down.start_flag,
+//                  &buttons.params.down.short_ban_flag, &buttons.down.short_push, &buttons.down.long_push,
+//                  systick_get(), buttons.config.short_push_time, buttons.config.long_push_time );
     
     button_update( buttons.params.left.btn, &buttons.params.left.start_time, &buttons.params.left.start_flag,
                   &buttons.params.left.short_ban_flag, &buttons.left.short_push, &buttons.left.long_push,

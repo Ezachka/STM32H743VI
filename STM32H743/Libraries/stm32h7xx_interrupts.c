@@ -21,10 +21,13 @@ void OTG_FS_IRQHandler(void)
 
 void USB_CDC_RxHandler(uint8_t* buffer, uint32_t size)
 {
- //   computer_packet_parser_data(buffer,size);
+    //   computer_packet_parser_data(buffer,size);
     asm("NOP");
-        return;
-
+    static  uint8_t welcome_string[]    = "WELCOME";
+    
+    CDC_Transmit_FS(welcome_string,sizeof(welcome_string));  
+    return;
+    
 }
 
 /**

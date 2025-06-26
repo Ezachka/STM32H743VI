@@ -26,6 +26,7 @@ ErrorStatus lcd_i2c_data_send(I2C_TypeDef* I2C_x,uint8_t data, uint8_t flags);
 ErrorStatus lcd_xxxx_go_to_line(I2C_TypeDef* I2C_x,uint8_t line_number);
 ErrorStatus lcd_xxxx_identification(display_xxxx_t* display, uint8_t adr,uint8_t columns, uint8_t lines);
 ErrorStatus lcd_xxxx_clear(I2C_TypeDef* I2C_x);
+ErrorStatus lcd_xxxx_soft_clear(I2C_TypeDef* I2C_x);
 ErrorStatus lcd_xxxx_next_stroke(I2C_TypeDef* I2C_x);
 /****************************************************************************/
 /************************  HW DEPENDENT FUNCTIONS  **************************/
@@ -101,11 +102,18 @@ ErrorStatus lcd_xxxx_config_update(I2C_TypeDef* I2C_x){
         display.operation.set_cursor=false;
     }
     else if(display.operation.update_data){
-        status|=lcd_xxxx_clear(I2C_x);
+     //   status|=lcd_xxxx_clear(I2C_x);
+      //  lcd_xxxx_soft_clear(I2C_x);
         status|=lcd_xxxx_write_on_line(I2C_x,display.data.line_one,1);
         status|=lcd_xxxx_write_on_line(I2C_x,display.data.line_two,2);
         status|=lcd_xxxx_write_on_line(I2C_x,display.data.line_three,3);
         status|=lcd_xxxx_write_on_line(I2C_x,display.data.line_four,4);
+        
+        if(display.settings.display_control.cursor_on){
+           lcd_xxxx_cursor(I2C_x,display.data.cursor_column,display.data.cursor_line) ;
+        }
+        
+        
         display.operation.update_data=false;
     }
 
@@ -294,45 +302,63 @@ ErrorStatus lcd_xxxx_write_on_line(I2C_TypeDef* I2C_x,char *str, uint8_t line){
 
 ErrorStatus lcd_xxxx_change_line(char *str, uint8_t line){
     ErrorStatus status = SUCCESS;
+    char* target_line = NULL;
+
     switch (line) {
-        case 1:
-        if (strncmp(display.data.line_one, str, display.columns) == 0) {
-            return ERROR; 
-        }
-        memset(display.data.line_one, 0x00, sizeof(display.data.line_one));
-        strncpy(display.data.line_one, str, display.columns);
-        break;
-        
-        case 2:
-        if (strncmp(display.data.line_two, str, display.columns) == 0) {
-            return ERROR;
-        }
-        memset(display.data.line_two, 0x00, sizeof(display.data.line_two));
-        strncpy(display.data.line_two, str, display.columns);
-        break;
-        
-        case 3:
-        if (strncmp(display.data.line_three, str, display.columns) == 0) {
-            return ERROR;
-        }
-        memset(display.data.line_three, 0x00, sizeof(display.data.line_three));
-        strncpy(display.data.line_three, str, display.columns);
-        break;
-        
-        case 4:
-        if (strncmp(display.data.line_four, str, display.columns) == 0) {
-            return ERROR;
-        }
-        memset(display.data.line_four, 0x00, sizeof(display.data.line_four));
-        strncpy(display.data.line_four, str, display.columns);
-        break;
-        
-        default:
+        case 1: target_line = display.data.line_one; break;
+        case 2: target_line = display.data.line_two; break;
+        case 3: target_line = display.data.line_three; break;
+        case 4: target_line = display.data.line_four; break;
+        default: return ERROR;
+    }
+
+    
+    if (strncmp(target_line, str, display.columns) == 0) {
         return ERROR;
     }
-    display.operation.update_data=true;
+
+    memset(target_line, ' ', display.columns);  //
+    target_line[display.columns] = '\0';        //
+
+    
+    size_t len = strlen(str);
+    if (len > display.columns) len = display.columns;
+    strncpy(target_line, str, len);
+
+    display.operation.update_data = true;
     return status;
 }
+
+/**
+* @brief lcd_xxxx_set_cursor
+*  
+*  
+* 
+* @param[in] 
+* @return    
+*/
+
+ErrorStatus lcd_xxxx_set_cursor(bool enable,bool blink,uint8_t position, uint8_t line){
+    line=line-1;
+    if(enable){
+        display.settings.display_control.cursor_on=true;
+    }else{
+        display.settings.display_control.cursor_on=false;
+    }
+    if(blink){
+        display.settings.display_control.cursor_blink_on=true;
+    }else{
+        display.settings.display_control.cursor_blink_on=false;
+    }
+    if(line>=0 &&(line<display.lines)){
+        display.data.cursor_line=line;
+    }
+    if(position>=0 &&(position<display.columns)){
+        display.data.cursor_column=position;
+    }
+    display.operation.set_cursor=true;
+}
+
 
 /**
 * @brief lcd_xxxx_identification
@@ -468,6 +494,27 @@ ErrorStatus lcd_xxxx_clear(I2C_TypeDef* I2C_x){
     return status;
 }
 /**
+* @brief lcd_xxxx_soft_clear
+*  
+*  
+* 
+* @param[in] I2C_x  I2C peripheral
+* @return    ErrorStatus
+*/
+
+ErrorStatus lcd_xxxx_soft_clear(I2C_TypeDef* I2C_x){
+    char temp_data[41];
+    memset(temp_data, ' ', 40);
+    temp_data[40] = '\0';
+    ErrorStatus status = SUCCESS;   
+    status|=lcd_xxxx_write_on_line(I2C_x,temp_data,1);
+    status|=lcd_xxxx_write_on_line(I2C_x,temp_data,2);
+    status|=lcd_xxxx_write_on_line(I2C_x,temp_data,3);
+    status|=lcd_xxxx_write_on_line(I2C_x,temp_data,4);
+    
+    return status;
+}
+/**
 * @brief lcd_xxxx_home
 *  
 *  
@@ -492,6 +539,9 @@ ErrorStatus lcd_xxxx_home(I2C_TypeDef* I2C_x){
 
 ErrorStatus lcd_xxxx_cursor(I2C_TypeDef* I2C_x,uint8_t column, uint8_t line){
     ErrorStatus status = SUCCESS;
+    
+   // column=column-1;
+   // line=line-1;
     uint8_t row_offsets[] = { 0x00, 0x40, 0x14, 0x54 };
 	if ( line > (display.lines-1) ) {
 		line = display.lines-1;    

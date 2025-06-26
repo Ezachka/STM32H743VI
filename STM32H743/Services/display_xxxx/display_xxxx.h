@@ -76,12 +76,12 @@ extern C {
         uint8_t         lines;
         bool            connect;
         struct{
-           char line_one[40];
-           char line_two[40];
-           char line_three[40];
-           char line_four[40];
-           uint8_t cursor_column;
-           uint8_t cursor_line;
+            char line_one[40];
+            char line_two[40];
+            char line_three[40];
+            char line_four[40];
+            uint8_t cursor_column;
+            uint8_t cursor_line;
         }data;
         struct{
             uint8_t     entry_mode;
@@ -117,15 +117,17 @@ extern C {
             }shift;
         }settings;
     }display_xxxx_t;
-                /****************************************************************************/  
+    /****************************************************************************/  
     ErrorStatus lcd_xxxx_init(I2C_TypeDef* I2C_x,uint8_t adr,uint8_t columns, uint8_t lines,bool back_light);
     ErrorStatus lcd_xxxx_config_update(I2C_TypeDef* I2C_x);
     ErrorStatus lcd_xxxx_write_on_line(I2C_TypeDef* I2C_x,char *str, uint8_t line);
-    ErrorStatus lcd_xxxx_change_line(char *str, uint8_t line);
     ErrorStatus lcd_xxxx_clear(I2C_TypeDef* I2C_x);
     ErrorStatus lcd_xxxx_home(I2C_TypeDef* I2C_x);
     ErrorStatus lcd_xxxx_cursor(I2C_TypeDef* I2C_x,uint8_t column, uint8_t line);
-
+    //
+    ErrorStatus lcd_xxxx_change_line(char *str, uint8_t line);
+    ErrorStatus lcd_xxxx_set_cursor(bool enable,bool blink,uint8_t position, uint8_t line);
+    
 #ifdef __cplusplus
 }
 #endif

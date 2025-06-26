@@ -1,5 +1,5 @@
 #include "comunnication.h"
-//#include "usbd_cdc_if.h"
+#include "usbd_cdc_if.h"
 //#include "stm32h7xx_crc.h"
 #include "stm32h7xx_usart.h"
 #include <string.h>
@@ -83,6 +83,9 @@ void computer_tx_data(uint16_t burst_was, float with_freq, uint8_t power_precent
 //    
 //    usart_send_data(USART1,tx_data,packet_data_size);
 //    CDC_Transmit_FS(tx_data,packet_data_size);
+//    static  uint8_t welcome_string[]    = "WELCOME";
+//
+//    CDC_Transmit_FS(welcome_string,sizeof(welcome_string));  
 }
 
 
